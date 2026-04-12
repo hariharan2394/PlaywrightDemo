@@ -8,10 +8,10 @@ test.describe('Login functionality', () => {
         loginPage = new LoginPage(page);
 
         // Credentials 
-        const username = 'Admin';
-        const password = 'admin123';
+        const username = process.env.USERNAME!;
+        const password = process.env.PASSWORD!;
 
-        await loginPage.navigateTo('https://opensource-demo.orangehrmlive.com/web/index.php/auth/login');
+        await loginPage.navigateTo(process.env.BASE_URL!);
 
         // Wait for basic DOM to be ready
         await page.waitForLoadState('domcontentloaded');
