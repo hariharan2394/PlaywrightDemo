@@ -18,11 +18,13 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     env:
-      ENVIRONMENT: ${{ github.event.inputs.environment != '' && github.event.inputs.environment || 'test' }}
+      ENVIRONMENT: ${{ github.event.inputs.environment || 'test' }}
       #From Environment
       BASE_URL: ${{ vars.BASE_URL }}
       USERNAME: ${{ secrets.USERNAME }}
       PASSWORD: ${{ secrets.PASSWORD }}
+
+    environment: ${{ github.event.inputs.environment || 'test' }}
     
     steps:
     - uses: actions/checkout@v4
