@@ -11,20 +11,18 @@ on:
         description: Environment agains which the test need to be executed
         type: choice
         options: [test, stage, prod]
-        default: stage
+        default: test
 
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     env:
-      ENVIRONMENT: ${{ github.event.inputs.environment || 'stage'}}
+      ENVIRONMENT: ${{ github.event.inputs.environment != '' && github.event.inputs.environment || 'test' }}
       #From Environment
       BASE_URL: ${{ vars.BASE_URL }}
       USERNAME: ${{ secrets.USERNAME }}
       PASSWORD: ${{ secrets.PASSWORD }}
-
-    environment: $ENVIRONMENT
     
     steps:
     - uses: actions/checkout@v4
@@ -37,6 +35,7 @@ jobs:
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: npx playwright test
+
     - name: Download Previous History
       uses: actions/download-artifact@v4
       with:
