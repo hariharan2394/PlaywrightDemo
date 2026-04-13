@@ -41,10 +41,10 @@ jobs:
           git fetch origin gh-pages || true
           git checkout gh-pages || true
 
-          mkdir -p ../allure-results/history
+          mkdir -p $GITHUB_WORKSPACE/allure-results/history
 
           if [ -d "history" ]; then
-            cp -r history/* ../allure-results/history/ || true
+            cp -r history/* $GITHUB_WORKSPACE/allure-results/history/ || true
           fi
 
           git checkout $GITHUB_REF_NAME
@@ -72,9 +72,9 @@ jobs:
         run: npx allure generate allure-results --clean -o allure-report
 
       # -------------------------------------
-      # SAVE HISTORY (KEEP LAST 20)
+      # SAVE HISTORY BACK TO gh-pages (KEEP 20)
       # -------------------------------------
-      - name: Save Allure history (last 20)
+      - name: Save Allure history (keep last 20)
         if: always()
         run: |
           git fetch origin gh-pages || true
@@ -82,12 +82,10 @@ jobs:
 
           mkdir -p history
 
-          # Copy latest run history
-          if [ -d "../allure-report/history" ]; then
-            cp -r ../allure-report/history/* history/
+          if [ -d "$GITHUB_WORKSPACE/allure-report/history" ]; then
+            cp -r $GITHUB_WORKSPACE/allure-report/history/* history/
           fi
 
-          # Keep only newest 20 history files
           cd history
           ls -1t | tail -n +21 | xargs -r rm -f
           cd ..
@@ -111,7 +109,7 @@ jobs:
           path: allure-report
 
       # -------------------------------------
-      # KEEP PLAYWRIGHT REPORT
+      # KEEP PLAYWRIGHT HTML REPORT
       # -------------------------------------
       - name: Upload Playwright HTML Report
         if: always()
