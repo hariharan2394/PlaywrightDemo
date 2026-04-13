@@ -50,32 +50,39 @@ jobs:
         run: npx playwright test
         continue-on-error: true
 
-      # --------------------------------
-      # RESTORE PREVIOUS ALLURE HISTORY
-      # --------------------------------
-      - name: Restore Allure History
+      # ------------------------------------------------
+      # RESTORE ALLURE HISTORY (FIXED — FLATTEN FOLDER)
+      # ------------------------------------------------
+      - name: Download Allure History Artifact
         uses: actions/download-artifact@v4
         with:
           name: allure-history
-          path: allure-results/history
+          path: allure-history-temp
         continue-on-error: true
 
-      # --------------------------------
+      - name: Move history into correct folder
+        run: |
+          mkdir -p allure-results/history
+          if [ -d "allure-history-temp" ]; then
+            cp allure-history-temp/* allure-results/history/ || true
+          fi
+
+      # ------------------------------------------------
       # GENERATE ALLURE REPORT
-      # --------------------------------
+      # ------------------------------------------------
       - name: Generate Allure Report
         if: always()
         run: npx allure generate allure-results --clean -o allure-report
 
-      # --------------------------------
-      # ALWAYS PREPARE HISTORY ARTIFACT
-      # --------------------------------
-      - name: Prepare Allure History Artifact
+      # ------------------------------------------------
+      # SAVE HISTORY FOR NEXT RUN
+      # ------------------------------------------------
+      - name: Prepare Allure History
         if: always()
         run: |
           mkdir -p allure-history
           if [ -d "allure-report/history" ]; then
-            cp -r allure-report/history/* allure-history/
+            cp allure-report/history/* allure-history/
           fi
 
       - name: Upload Allure History
@@ -85,18 +92,18 @@ jobs:
           name: allure-history
           path: allure-history
 
-      # --------------------------------
+      # ------------------------------------------------
       # UPLOAD ALLURE REPORT TO PAGES
-      # --------------------------------
+      # ------------------------------------------------
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: allure-report
 
-      # --------------------------------
-      # KEEP PLAYWRIGHT HTML REPORT
-      # --------------------------------
+      # ------------------------------------------------
+      # UPLOAD PLAYWRIGHT HTML REPORT
+      # ------------------------------------------------
       - name: Upload Playwright HTML Report
         if: always()
         uses: actions/upload-artifact@v4
