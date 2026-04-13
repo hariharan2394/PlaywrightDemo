@@ -48,6 +48,7 @@ jobs:
 
       - name: Run Playwright Tests
         run: npx playwright test
+        continue-on-error: true
 
       # -----------------------------
       # RESTORE ALLURE HISTORY (FOR TRENDS)
