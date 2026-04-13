@@ -15,7 +15,7 @@ on:
         default: test
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -29,11 +29,25 @@ jobs:
       USERNAME: ${{ secrets.USERNAME }}
       PASSWORD: ${{ secrets.PASSWORD }}
 
-    environment: ${{ github.event.inputs.environment || 'test' }}
-
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      # -------------------------------------
+      # RESTORE HISTORY FROM gh-pages
+      # -------------------------------------
+      - name: Restore Allure history
+        run: |
+          git fetch origin gh-pages || true
+          git checkout gh-pages || true
+
+          mkdir -p ../allure-results/history
+
+          if [ -d "history" ]; then
+            cp -r history/* ../allure-results/history/ || true
+          fi
+
+          git checkout $GITHUB_REF_NAME
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -50,60 +64,55 @@ jobs:
         run: npx playwright test
         continue-on-error: true
 
-      # ------------------------------------------------
-      # RESTORE ALLURE HISTORY (FIXED — FLATTEN FOLDER)
-      # ------------------------------------------------
-      - name: Download Allure History Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: allure-history
-          path: allure-history-temp
-        continue-on-error: true
-
-      - name: Move history into correct folder
-        run: |
-          mkdir -p allure-results/history
-          if [ -d "allure-history-temp" ]; then
-            cp allure-history-temp/* allure-results/history/ || true
-          fi
-
-      # ------------------------------------------------
+      # -------------------------------------
       # GENERATE ALLURE REPORT
-      # ------------------------------------------------
+      # -------------------------------------
       - name: Generate Allure Report
         if: always()
         run: npx allure generate allure-results --clean -o allure-report
 
-      # ------------------------------------------------
-      # SAVE HISTORY FOR NEXT RUN
-      # ------------------------------------------------
-      - name: Prepare Allure History
+      # -------------------------------------
+      # SAVE HISTORY (KEEP LAST 20)
+      # -------------------------------------
+      - name: Save Allure history (last 20)
         if: always()
         run: |
-          mkdir -p allure-history
-          if [ -d "allure-report/history" ]; then
-            cp allure-report/history/* allure-history/
+          git fetch origin gh-pages || true
+          git checkout gh-pages || git checkout --orphan gh-pages
+
+          mkdir -p history
+
+          # Copy latest run history
+          if [ -d "../allure-report/history" ]; then
+            cp -r ../allure-report/history/* history/
           fi
 
-      - name: Upload Allure History
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-history
-          path: allure-history
+          # Keep only newest 20 history files
+          cd history
+          ls -1t | tail -n +21 | xargs -r rm -f
+          cd ..
 
-      # ------------------------------------------------
-      # UPLOAD ALLURE REPORT TO PAGES
-      # ------------------------------------------------
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add history
+          git commit -m "Update Allure history (keep last 20)" || echo "No changes"
+          git push origin gh-pages
+
+          git checkout $GITHUB_REF_NAME
+
+      # -------------------------------------
+      # UPLOAD ALLURE REPORT
+      # -------------------------------------
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: allure-report
 
-      # ------------------------------------------------
-      # UPLOAD PLAYWRIGHT HTML REPORT
-      # ------------------------------------------------
+      # -------------------------------------
+      # KEEP PLAYWRIGHT REPORT
+      # -------------------------------------
       - name: Upload Playwright HTML Report
         if: always()
         uses: actions/upload-artifact@v4
