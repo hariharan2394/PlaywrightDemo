@@ -66,6 +66,7 @@ jobs:
     - name: Deploy Allure Report to GitHub Pages (Unique Run)
       uses: peaceiris/actions-gh-pages@v4
       with:
+        github_token: ${{ github.token }}
         publish_dir: allure-report
         destination_dir: allure/${{ github.run_id }}
 
