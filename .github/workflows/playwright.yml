@@ -108,9 +108,33 @@ jobs:
       # -----------------------------
       # DEPLOY
       # -----------------------------
-      - name: Deploy Allure Report to GitHub Pages
+      - name: Deploy Allure Report (Versioned + Latest)
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ github.token }}
           publish_dir: allure-report
           destination_dir: allure/${{ github.run_id }}
+
+      - name: Deploy Latest Allure Report
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: allure-report
+          destination_dir: allure/latest
+      
+      - name: Generate Dashboard
+        run: |
+          mkdir -p site
+          echo "<h1>Allure Reports</h1><ul>" > site/index.html
+          for dir in $(ls allure-report/history | head -n 20); do
+            echo "<li><a href='allure/$dir/'>Run $dir</a></li>" >> site/index.html
+          done
+          echo "<li><a href='allure/latest/'>Latest Report</a></li>" >> site/index.html
+          echo "</ul>" >> site/index.html
+      
+      - name: Deploy Dashboard
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: site
+          destination_dir: .
