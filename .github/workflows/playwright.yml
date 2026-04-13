@@ -64,21 +64,24 @@ jobs:
       # GENERATE ALLURE REPORT
       # -----------------------------
       - name: Generate Allure Report
+        if: always()
         run: npx allure generate allure-results --clean -o allure-report
 
       # -----------------------------
       # SAVE HISTORY FOR NEXT RUN
       # -----------------------------
       - name: Save Allure History
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-history
           path: allure-report/history
 
       # -----------------------------
-      # UPLOAD ALLURE REPORT TO GITHUB PAGES
+      # UPLOAD ALLURE REPORT TO PAGES
       # -----------------------------
       - name: Upload Allure Report
+        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: allure-report
@@ -87,16 +90,13 @@ jobs:
       # UPLOAD PLAYWRIGHT HTML REPORT
       # -----------------------------
       - name: Upload Playwright HTML Report
-        if: ${{ !cancelled() }}
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
 
-  # -----------------------------
-  # DEPLOY LATEST REPORT ONLY
-  # -----------------------------
   deploy:
     needs: test
     runs-on: ubuntu-latest
