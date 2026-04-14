@@ -78,7 +78,7 @@ jobs:
           echo "RunID=${{ github.run_id }}" >> allure-results/environment.properties
           echo "Environment=${{ env.ENVIRONMENT }}" >> allure-results/environment.properties
           echo "Branch=${{ github.ref_name }}" >> allure-results/environment.properties
-          echo "Commit=${{ github.sha }} | cut -c1-7" >> allure-results/environment.properties
+          echo "Commit=${GITHUB_SHA::7}" >> allure-results/environment.properties
           echo "CommitURL=https://github.com/${{ github.repository }}/commit/${{ github.sha }}" >> allure-results/environment.properties
       
       - name: Generate Allure Report
@@ -107,7 +107,7 @@ jobs:
           git config user.email "github-actions@github.com"
 
           git add $HISTORY_DIR
-          git commit -m "Allure history | Run: ${{ github.run_id }} | Branch: ${{ github.ref_name }} | Commit: ${{ github.sha }} | cut -c1-7" || echo "No changes"
+          git commit -m "Allure history | Run: ${{ github.run_id }} | Branch: ${{ github.ref_name }} | Commit: ${GITHUB_SHA::7}" || echo "No changes"
           git push origin gh-pages
 
           git checkout $GITHUB_REF_NAME
