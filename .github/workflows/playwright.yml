@@ -29,6 +29,8 @@ jobs:
       USERNAME: ${{ secrets.USERNAME }}
       PASSWORD: ${{ secrets.PASSWORD }}
 
+    environment: ${{ github.event.inputs.environment || 'test' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,11 +75,11 @@ jobs:
       - name: Add Allure Environment Info
         run: |
           mkdir -p allure-results
-          echo "Run ID=${{ github.run_id }}" >> allure-results/environment.properties
+          echo "RunID=${{ github.run_id }}" >> allure-results/environment.properties
           echo "Environment=${{ env.ENVIRONMENT }}" >> allure-results/environment.properties
           echo "Branch=${{ github.ref_name }}" >> allure-results/environment.properties
           echo "Commit=${{ github.sha }} | cut -c1-7" >> allure-results/environment.properties
-          echo "Commit URL=https://github.com/${{ github.repository }}/commit/${{ github.sha }}" >> allure-results/environment.properties
+          echo "CommitURL=https://github.com/${{ github.repository }}/commit/${{ github.sha }}" >> allure-results/environment.properties
       
       - name: Generate Allure Report
         if: always()
